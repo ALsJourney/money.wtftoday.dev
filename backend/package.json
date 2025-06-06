@@ -1,0 +1,24 @@
+{
+  "name": "hono-better-auth",
+  "scripts": {
+    "dev": "bun run --hot src/index.ts",
+    "start": "bun run src/index.ts",
+    "push": "bunx drizzle-kit push",
+    "lint": "biome check ./src",
+    "format": "biome check --write ./src"
+  },
+  "dependencies": {
+    "better-auth": "^1.2.8",
+    "dotenv": "^16.5.0",
+    "drizzle-orm": "^0.44.2",
+    "hono": "^4.7.10",
+    "pg": "^8.16.0"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^1.9.4",
+    "@types/bun": "latest",
+    "@types/pg": "^8.15.4",
+    "drizzle-kit": "^0.31.1",
+    "tsx": "^4.19.4"
+  }
+}

@@ -1,0 +1,42 @@
+name: Linting
+run-name: ${{ github.actor }} is Linting on ${{ github.ref }}
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - '**.ts'
+      - '**.js'
+      - 'package.json'
+  pull_request:
+    branches: [master]
+    paths:
+      - '**.ts'
+      - '**.js'
+      - 'package.json'
+
+jobs:
+  linting:
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: true
+      matrix:
+        bun: [1.2.1]
+
+    name: BUN ${{ matrix.bun }}
+
+    steps:
+      - name: 🌱 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 📥 Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: ${{ matrix.bun }}
+
+      - name: ⚡ Install dependencies (with bun)
+        run: bun install
+
+      - name: 🪵 Lint
+        run: bun run lint
