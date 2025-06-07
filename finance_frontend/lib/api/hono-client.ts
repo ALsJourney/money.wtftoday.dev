@@ -32,12 +32,18 @@ export async function honoFetch<T = any>(
         }
     });
 
-    // Set default headers
-    const defaultHeaders = {
-        'Content-Type': 'application/json',
+    // Set default headers - but don't set Content-Type for FormData
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-expect-error
+    const defaultHeaders: Record<string, string> = {
         'Accept': 'application/json',
         ...headers,
     };
+
+    // Only set Content-Type to application/json if body is not FormData
+    if (fetchOptions.body && !(fetchOptions.body instanceof FormData)) {
+        defaultHeaders['Content-Type'] = 'application/json';
+    }
 
     // Perform the fetch
     const response = await fetch(url.toString(), {
@@ -67,4 +73,3 @@ export async function honoFetch<T = any>(
 
     return response as unknown as T;
 }
-

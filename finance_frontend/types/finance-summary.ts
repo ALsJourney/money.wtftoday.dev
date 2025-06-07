@@ -1,7 +1,5 @@
-
-
-export interface FinanceSummary {
+export type FinanceSummary = {
     totalIncome: number;
     totalExpenses: number;
     netIncome: number;
-};
+}
