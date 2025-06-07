@@ -7,23 +7,28 @@ import { incomeRouter } from './routes/income'
 import { expenseRouter } from './routes/expense'
 import { dashboardRouter } from './routes/dashboard'
 import { uploadRouter } from './routes/upload'
+import { cors } from 'hono/cors'
+
 
 const app = new Hono()
 
-// mount your health-check router at /health
+app.use('*', cors({
+    origin: (o) => process.env.ALLOWED_ORIGINS?.split(',')?.includes(o!) ? o : undefined,
+    allowHeaders: ['Content-Type', 'Authorization'],
+    allowMethods: ['POST','GET','OPTIONS', 'PUT', 'DELETE'],
+    credentials: true,
+}))
+
 app.route('/health', healthRouter)
 
-// mount the auth router at /api/auth
 app.route('/api/auth', authRouter)
 
-// mount finance routes
 app.route('/api/income', incomeRouter)
 app.route('/api/expense', expenseRouter)
 app.route('/api/dashboard', dashboardRouter)
 app.route('/api/upload', uploadRouter)
 app.route('/api/files', uploadRouter)
 
-// your existing root route
 app.get('/', (c) =>
   c.json({
     message: 'Kleinunternehmer Finance Dashboard',

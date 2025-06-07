@@ -2,7 +2,7 @@ import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { isAuthenticated } from '../middleware/auth';
 import { join } from 'path';
-import { mkdir, writeFile } from 'fs/promises';
+import { mkdir, writeFile, readFile } from 'fs/promises';
 import { existsSync } from 'fs';
 
 const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || [];
@@ -34,7 +34,7 @@ export const uploadRouter = new Hono();
 uploadRouter.use('*', cors({
   origin: (o) => allowedOrigins.includes(o!) ? o : undefined,
   allowHeaders: ['Content-Type', 'Authorization'],
-  allowMethods: ['POST', 'OPTIONS'],
+  allowMethods: ['POST', 'GET', 'OPTIONS'],
   credentials: true,
 }));
 
@@ -107,6 +107,9 @@ uploadRouter.get('/:userId/:fileName', async (c) => {
       return c.json({ error: 'File not found' }, 404);
     }
 
+    // Read the file content
+    const fileBuffer = await readFile(filePath);
+
     // Determine content type
     let contentType = 'application/octet-stream';
     if (fileName.endsWith('.pdf')) contentType = 'application/pdf';
@@ -116,12 +119,13 @@ uploadRouter.get('/:userId/:fileName', async (c) => {
     else if (fileName.endsWith('.doc')) contentType = 'application/msword';
     else if (fileName.endsWith('.docx')) contentType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
 
-    // Return file
-    return c.body(null, {
+    // Return file with actual content
+    return c.body(fileBuffer, {
       status: 200,
       headers: {
         'Content-Type': contentType,
-        'Content-Disposition': `inline; filename="${fileName}"`,
+        'Content-Disposition': `inline; filename="${decodeURIComponent(fileName)}"`,
+        'Content-Length': fileBuffer.length.toString(),
       },
     });
   } catch (error) {

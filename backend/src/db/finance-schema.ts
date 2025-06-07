@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, integer, boolean, uuid } from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, integer, boolean, uuid, decimal } from "drizzle-orm/pg-core";
 import { user } from "./auth-schema";
 
 // Income (Einnahmen) table
@@ -9,7 +9,7 @@ export const income = pgTable("income", {
   customer: text('customer').notNull(),
   description: text('description').notNull(),
   paymentDate: timestamp('payment_date'),
-  amount: integer('amount').notNull(), // Amount in cents
+  amount: decimal('amount').notNull(), // Amount in cents
   fileUrl: text('file_url'),
   fileName: text('file_name'),
   fileType: text('file_type'),
@@ -25,7 +25,7 @@ export const expense = pgTable("expense", {
   vendor: text('vendor').notNull(),
   description: text('description').notNull(),
   paymentDate: timestamp('payment_date'),
-  amount: integer('amount').notNull(), // Amount in cents
+  amount: decimal('amount').notNull(), // Amount in cents
   fileUrl: text('file_url'),
   fileName: text('file_name'),
   fileType: text('file_type'),

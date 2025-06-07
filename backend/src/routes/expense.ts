@@ -53,21 +53,17 @@ expenseRouter.get('/', isAuthenticated, async (c) => {
     const userId = c.get('userId');
     const year = c.req.query('year');
     
-    let query = db.select().from(expense).where(eq(expense.userId, userId));
-    
-    // Filter by year if provided
+    let conditions = [eq(expense.userId, userId)];
+
     if (year) {
       const startDate = new Date(`${year}-01-01T00:00:00.000Z`);
       const endDate = new Date(`${year}-12-31T23:59:59.999Z`);
-      query = query.where(
-        and(
-          gte(expense.invoiceDate, startDate),
-          lte(expense.invoiceDate, endDate)
-        )
-      );
+      conditions.push(gte(expense.invoiceDate, startDate));
+      conditions.push(lte(expense.invoiceDate, endDate));
     }
-    
-    // Order by invoice date descending
+
+    const query = db.select().from(expense).where(and(...conditions));
+
     const expenseRecords = await query.orderBy(expense.invoiceDate);
     
     return c.json(expenseRecords);
@@ -82,11 +78,12 @@ expenseRouter.get('/:id', isAuthenticated, async (c) => {
   try {
     const userId = c.get('userId');
     const id = c.req.param('id');
-    
+
     const expenseRecord = await db.select().from(expense)
-      .where(and(eq(expense.id, id), eq(expense.userId, userId)))
-      .limit(1);
-    
+        .where(and(eq(expense.id, id), eq(expense.userId, userId)))
+        .limit(1);
+
+
     if (expenseRecord.length === 0) {
       return c.json({ error: 'Expense record not found' }, 404);
     }
