@@ -25,7 +25,7 @@ ENV NODE_ENV=production
 ENV NODE_GYP_FORCE_PYTHON=python3
 
 # Run build command
-RUN bun run push
+RUN bun run start
 
 # Expose the port your app runs on
 EXPOSE 8558
