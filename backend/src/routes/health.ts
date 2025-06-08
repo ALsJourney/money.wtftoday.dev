@@ -1,7 +1,7 @@
-import { Hono } from 'hono'
+import { Hono } from "hono";
 
-export const healthRouter = new Hono()
+export const healthRouter = new Hono();
 
-healthRouter.get('/', (c) => {
-    return c.json({ status: 'ok', time: Date.now() })
-})
+healthRouter.get("/", (c) => {
+	return c.json({ status: "ok", time: Date.now() });
+});

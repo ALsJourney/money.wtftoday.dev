@@ -1,12 +1,10 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { openAPI } from "better-auth/plugins";
+import db from "./db";
 import * as authSchema from "./db/auth-schema";
-import db from './db'
 
-const providers = [
-	"github",
-];
+const providers = ["github"];
 
 export const configuredProviders = providers.reduce<
 	Record<
