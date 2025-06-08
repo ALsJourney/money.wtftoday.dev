@@ -1,3 +1,4 @@
+
 # Use the official Bun image
 FROM oven/bun:1 AS base
 WORKDIR /app
@@ -18,11 +19,13 @@ COPY package.json bun.lockb* ./
 RUN bun install --frozen-lockfile
 
 # Copy source code
-COPY .. .
+COPY . .
 
 # Set environment variables
 ENV NODE_ENV=production
 ENV NODE_GYP_FORCE_PYTHON=python3
+ENV HOST=0.0.0.0
+ENV PORT=8558
 
 # Expose the port your app runs on
 EXPOSE 8558
