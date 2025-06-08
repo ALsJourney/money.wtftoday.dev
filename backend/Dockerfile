@@ -1,34 +1,17 @@
+# Use Bun's official image
+FROM oven/bun:1.1.8
 
-# Use the official Bun image
-FROM oven/bun:1 AS base
+# Set working directory
 WORKDIR /app
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
-    sqlite3 \
-    gcc \
-    g++ \
-    python3 \
-    make \
-    && rm -rf /var/lib/apt/lists/*
-
-# Copy package files
-COPY package.json bun.lockb* ./
-
-# Install dependencies
-RUN bun install --frozen-lockfile
-
-# Copy source code
+# Copy Bun config and source code
 COPY . .
 
-# Set environment variables
-ENV NODE_ENV=production
-ENV NODE_GYP_FORCE_PYTHON=python3
-ENV HOST=0.0.0.0
-ENV PORT=8558
+# Install dependencies using Bun
+RUN bun install --frozen-lockfile
 
-# Expose the port your app runs on
+# Expose the port your Hono app listens on
 EXPOSE 8558
 
-# Start the application
-CMD ["bun", "start"]
+# Start the app
+CMD ["bun", "src/index.ts"]
