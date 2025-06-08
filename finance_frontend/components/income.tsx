@@ -3,6 +3,7 @@ import {Income} from "@/types/income";
 import {incomeApi} from "@/lib/api/income";
 import Link from "next/link";
 import {useState} from "react";
+import {formatAmount} from "@/utils/formatCurrency";
 
 interface IncomeProps {
     id?: string;
@@ -21,10 +22,8 @@ export default function IncomeData({id}: IncomeProps) {
 
         setDeletingId(incomeId);
         try {
-            // Assuming you have a delete method in incomeApi
-            // await incomeApi.deleteIncome(incomeId);
-            console.log('Delete income:', incomeId);
-            refetch(); // Refresh the data
+            await incomeApi.deleteIncomeById(incomeId);
+            await refetch();
         } catch (error) {
             console.error('Failed to delete income:', error);
             alert('Failed to delete income. Please try again.');
@@ -82,25 +81,23 @@ export default function IncomeData({id}: IncomeProps) {
                             <div className="card-body p-4">
                                 <div className="flex justify-between items-start">
                                     <div className="flex-1">
-                                        <h3 className="font-semibold text-base-content">{income.customer}</h3>
-                                        <p className="text-2xl font-bold text-success">${income.amount?.toLocaleString()}</p>
+                                        <Link href={`/details?id=${income.id}&type=income`}><h3
+                                            className="font-semibold text-base-content">{income.customer}</h3></Link>
+                                        <p className="text-2xl font-bold text-success">{formatAmount(parseFloat(income.amount))}</p>
                                         <p className="text-sm text-base-content/70 mt-1">{income.description}</p>
                                     </div>
 
                                     <div className="flex gap-2 ml-4">
-                                        <button
+                                        <Link
                                             className="btn btn-ghost btn-sm"
-                                            onClick={() => {
-                                                // Handle edit - you can implement this
-                                                console.log('Edit income:', income.id);
-                                            }}
+                                            href={`/edit?id=${income.id}&type=income`}
                                         >
                                             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none"
                                                  viewBox="0 0 24 24" stroke="currentColor">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
                                                       d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                                             </svg>
-                                        </button>
+                                        </Link>
 
                                         <button
                                             className={`btn btn-ghost btn-sm text-error hover:bg-error hover:text-error-content ${deletingId === income.id ? 'loading' : ''}`}

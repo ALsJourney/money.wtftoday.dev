@@ -1,13 +1,12 @@
-
 export type ExpenseUpdatePayload = {
     invoiceDate: string;
-    vendor: string;
+    vendor?: string;
     description: string;
-    paymentDate: string;
-    amount: number;
-    fileUrl: string;
-    fileName: string;
-    fileType: string;
+    paymentDate?: string;
+    amount?: number;
+    fileUrl?: string;
+    fileName?: string;
+    fileType?: string;
 };
 
 export type Expense = {

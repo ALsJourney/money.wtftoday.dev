@@ -57,7 +57,7 @@ export default function DashboardPage() {
                             className="card bg-gradient-to-br from-success to-success/80 text-success-content shadow-xl">
                             <div className="card-body">
                                 <h2 className="card-title text-lg">Total Income</h2>
-                                <p className="text-3xl font-bold">${totalIncome?.toLocaleString() || '0'}</p>
+                                <p className="text-3xl font-bold">{totalIncome?.toLocaleString() || '0'} €</p>
                                 <div className="card-actions justify-end">
                                     <div className="badge badge-success badge-outline">+Income</div>
                                 </div>
@@ -67,7 +67,7 @@ export default function DashboardPage() {
                         <div className="card bg-gradient-to-br from-error to-error/80 text-error-content shadow-xl">
                             <div className="card-body">
                                 <h2 className="card-title text-lg">Total Expenses</h2>
-                                <p className="text-3xl font-bold">${totalExpenses?.toLocaleString() || '0'}</p>
+                                <p className="text-3xl font-bold">{totalExpenses?.toLocaleString() || '0'} €</p>
                                 <div className="card-actions justify-end">
                                     <div className="badge badge-error badge-outline">-Expenses</div>
                                 </div>
@@ -78,7 +78,7 @@ export default function DashboardPage() {
                             className={`card bg-gradient-to-br ${netIncome >= 0 ? 'from-info to-info/80 text-info-content' : 'from-warning to-warning/80 text-warning-content'} shadow-xl`}>
                             <div className="card-body">
                                 <h2 className="card-title text-lg">Net Income</h2>
-                                <p className="text-3xl font-bold">${netIncome?.toLocaleString() || '0'}</p>
+                                <p className="text-3xl font-bold">{netIncome?.toLocaleString() || '0'} €</p>
                                 <div className="card-actions justify-end">
                                     <div
                                         className={`badge ${netIncome >= 0 ? 'badge-info' : 'badge-warning'} badge-outline`}>

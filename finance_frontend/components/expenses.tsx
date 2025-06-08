@@ -3,6 +3,7 @@ import {Expense} from "@/types/expenses";
 import {useAsyncData} from "@/hooks/useAsyncData";
 import Link from "next/link";
 import {useState} from "react";
+import {formatAmount} from "@/utils/formatCurrency";
 
 interface ExpensesProps {
     id?: string;
@@ -21,10 +22,8 @@ export default function Expenses({id}: ExpensesProps) {
 
         setDeletingId(expenseId);
         try {
-            // Assuming you have a delete method in expenseApi
-            // await expenseApi.deleteExpense(expenseId);
-            console.log('Delete expense:', expenseId);
-            refetch(); // Refresh the data
+            await expenseApi.deleteExpenseById(expenseId);
+            await refetch();
         } catch (error) {
             console.error('Failed to delete expense:', error);
             alert('Failed to delete expense. Please try again.');
@@ -82,25 +81,23 @@ export default function Expenses({id}: ExpensesProps) {
                             <div className="card-body p-4">
                                 <div className="flex justify-between items-start">
                                     <div className="flex-1">
-                                        <h3 className="font-semibold text-base-content">{expense.vendor}</h3>
-                                        <p className="text-2xl font-bold text-error">${expense.amount?.toLocaleString()}</p>
+                                        <Link href={`/details?id=${expense.id}&type=expense`}><h3
+                                            className="font-semibold text-base-content">{expense.vendor}</h3></Link>
+                                        <p className="text-2xl font-bold text-error">{formatAmount(parseFloat(expense.amount))}</p>
                                         <p className="text-sm text-base-content/70 mt-1">{expense.description}</p>
                                     </div>
 
                                     <div className="flex gap-2 ml-4">
-                                        <button
+                                        <Link
                                             className="btn btn-ghost btn-sm"
-                                            onClick={() => {
-                                                // Handle edit - you can implement this
-                                                console.log('Edit expense:', expense.id);
-                                            }}
+                                            href={`/edit?id=${expense.id}&type=expense`}
                                         >
                                             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none"
                                                  viewBox="0 0 24 24" stroke="currentColor">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
                                                       d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                                             </svg>
-                                        </button>
+                                        </Link>
 
                                         <button
                                             className={`btn btn-ghost btn-sm text-error hover:bg-error hover:text-error-content ${deletingId === expense.id ? 'loading' : ''}`}

@@ -1,26 +1,33 @@
-'use client';
-
-import {useState} from 'react';
+import {useSearchParams, useRouter} from 'next/navigation';
 import {incomeApi} from '@/lib/api/income';
 import {expenseApi} from '@/lib/api/expenses';
 import {uploadApi} from '@/lib/api/uploads';
+import {formatDateForInput} from "@/utils/formatDate";
 import {ExpenseUpdatePayload} from "@/types/expenses";
-import {IncomeUpdatePayload} from "@/types/income";
+import {useState, useEffect} from "react";
 
-type FormType = 'income' | 'expense';
+type EditType = 'income' | 'expense';
 
 interface FormData {
     invoiceDate: string;
     customer?: string;
     vendor?: string;
     description: string;
-    paymentDate: string;
+    paymentDate?: string;
     amount: string;
-    file?: File;
+    fileUrl?: string;
+    fileName?: string;
+    fileType?: string;
 }
 
-export default function AddData() {
-    const [formType, setFormType] = useState<FormType>('income');
+
+export default function EditPageContent() {
+    const searchParams = useSearchParams();
+    const router = useRouter();
+
+    const id = searchParams.get('id');
+    const type = searchParams.get('type') as EditType;
+
     const [formData, setFormData] = useState<FormData>({
         invoiceDate: '',
         customer: '',
@@ -28,11 +35,70 @@ export default function AddData() {
         description: '',
         paymentDate: '',
         amount: '',
+        fileUrl: '',
+        fileName: '',
+        fileType: '',
     });
-    const [file, setFile] = useState<File | null>(null);
+
+    const [newFile, setNewFile] = useState<File | null>(null);
     const [loading, setLoading] = useState(false);
+    const [loadingData, setLoadingData] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState(false);
+
+    // Load existing data
+    useEffect(() => {
+        const loadData = async () => {
+            if (!id || !type) {
+                setError('Missing ID or type parameter');
+                setLoadingData(false);
+                return;
+            }
+
+            try {
+                let data;
+                if (type === 'income') {
+                    data = await incomeApi.getIncomeById(id);
+                    setFormData({
+                        invoiceDate: formatDateForInput(data.invoiceDate),
+                        customer: data.customer || '',
+                        vendor: '',                   // vendor does not exist for income, pass empty string
+                        description: data.description,
+                        paymentDate: formatDateForInput(data.paymentDate) || '',
+                        amount: data.amount.toString(),
+                        fileUrl: data.fileUrl || '',
+                        fileName: data.fileName || '',
+                        fileType: data.fileType || '',
+                    });
+                } else if (type === 'expense') {
+                    data = await expenseApi.getExpenseById(id);
+                    setFormData({
+                        invoiceDate: formatDateForInput(data.invoiceDate),
+                        customer: '',                 // customer does not exist for expense, pass empty string
+                        vendor: data.vendor || '',
+                        description: data.description,
+                        paymentDate: formatDateForInput(data.paymentDate) || '',
+                        amount: data.amount.toString(),
+                        fileUrl: data.fileUrl || '',
+                        fileName: data.fileName || '',
+                        fileType: data.fileType || '',
+                    });
+                } else {
+                    setError('Invalid type parameter');
+                    setLoadingData(false);
+                    return;
+                }
+
+            } catch (err) {
+                console.error('Error loading data:', err);
+                setError('Failed to load record data');
+            } finally {
+                setLoadingData(false);
+            }
+        };
+
+        loadData();
+    }, [id, type]);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const {name, value} = e.target;
@@ -45,22 +111,18 @@ export default function AddData() {
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const selectedFile = e.target.files?.[0];
         if (selectedFile) {
-            setFile(selectedFile);
+            setNewFile(selectedFile);
         }
     };
 
-    const resetForm = () => {
-        setFormData({
-            invoiceDate: '',
-            customer: '',
-            vendor: '',
-            description: '',
-            paymentDate: '',
-            amount: '',
-        });
-        setFile(null);
-        setError(null);
-        setSuccess(false);
+    const removeFile = () => {
+        setFormData(prev => ({
+            ...prev,
+            fileUrl: '',
+            fileName: '',
+            fileType: '',
+        }));
+        setNewFile(null);
     };
 
     const validateForm = (): boolean => {
@@ -71,12 +133,12 @@ export default function AddData() {
             return false;
         }
 
-        if (formType === 'income' && !formData.customer) {
+        if (type === 'income' && !formData.customer) {
             setError('Customer is required for income');
             return false;
         }
 
-        if (formType === 'expense' && !formData.vendor) {
+        if (type === 'expense' && !formData.vendor) {
             setError('Vendor is required for expense');
             return false;
         }
@@ -97,7 +159,7 @@ export default function AddData() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        if (!validateForm()) {
+        if (!validateForm() || !id) {
             return;
         }
 
@@ -105,14 +167,14 @@ export default function AddData() {
         setError(null);
 
         try {
-            let fileUrl = '';
-            let fileName = '';
-            let fileType = '';
+            let fileUrl = formData.fileUrl || '';
+            let fileName = formData.fileName || '';
+            let fileType = formData.fileType || '';
 
-            // Upload file if provided
-            if (file) {
+            // Upload new file if provided
+            if (newFile) {
                 try {
-                    const uploadResult = await uploadApi.uploadFile(file);
+                    const uploadResult = await uploadApi.uploadFile(newFile);
                     fileUrl = uploadResult.fileUrl;
                     fileName = uploadResult.fileName;
                     fileType = uploadResult.fileType;
@@ -125,81 +187,105 @@ export default function AddData() {
             }
 
             // Prepare data for API
-            const apiData: ExpenseUpdatePayload = {
+            const apiData = {
                 invoiceDate: formData.invoiceDate,
                 vendor: formData.vendor || undefined,
                 description: formData.description,
                 paymentDate: formData.paymentDate || undefined,
-                amount: parseFloat(formData.amount),
+                amount: formData.amount || undefined,
                 fileUrl: fileUrl || undefined,
                 fileName: fileName || undefined,
                 fileType: fileType || undefined,
             };
 
-            // Submit based on form type
-            if (formType === 'income') {
+            // Update based on type
+            if (type === 'income') {
                 const incomeData = {
                     ...apiData,
                     customer: formData.customer!,
                 };
-                await incomeApi.createIncome(incomeData as IncomeUpdatePayload);
+                await incomeApi.updateIncomeById(id, incomeData as ExpenseUpdatePayload);
             } else {
                 const expenseData = {
                     ...apiData,
                     vendor: formData.vendor!,
                 };
-                await expenseApi.createExpense(expenseData);
+                await expenseApi.updateExpenseById(id, expenseData);
             }
 
             setSuccess(true);
-            resetForm();
 
-            // Redirect after successful creation
+            // Redirect after successful update
             setTimeout(() => {
-                window.location.href = '/';
+                router.push('/');
             }, 2000);
 
         } catch (err) {
-            console.error('Error creating record:', err);
-            setError(err instanceof Error ? err.message : 'Failed to create record');
+            console.error('Error updating record:', err);
+            setError(err instanceof Error ? err.message : 'Failed to update record');
         } finally {
             setLoading(false);
         }
     };
 
-    const handleFormTypeChange = (type: FormType) => {
-        setFormType(type);
-        resetForm();
+    const handleDelete = async () => {
+        if (!id || !window.confirm(`Are you sure you want to delete this ${type}?`)) {
+            return;
+        }
+
+        setLoading(true);
+        setError(null);
+
+        try {
+            if (type === 'income') {
+                await incomeApi.deleteIncomeById(id);
+            } else {
+                await expenseApi.deleteExpenseById(id);
+            }
+
+            // Redirect after successful deletion
+            router.push('/');
+
+        } catch (err) {
+            console.error('Error deleting record:', err);
+            setError(err instanceof Error ? err.message : 'Failed to delete record');
+            setLoading(false);
+        }
     };
 
+    if (loadingData) {
+        return (
+            <div className="max-w-2xl mx-auto p-6">
+                <div className="text-center">Loading...</div>
+            </div>
+        );
+    }
+
+    if (!id || !type) {
+        return (
+            <div className="max-w-2xl mx-auto p-6">
+                <div className="text-red-500">Error: Missing ID or type parameter</div>
+                <button
+                    onClick={() => router.push('/')}
+                    className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                >
+                    Back to Dashboard
+                </button>
+            </div>
+        );
+    }
     return (
         <div className="max-w-2xl mx-auto p-6">
-            <h1 className="text-2xl font-bold mb-6">Add New Financial Record</h1>
-
-            {/* Form Type Selector */}
-            <div className="mb-6">
-                <div className="flex gap-4">
+            <div className="flex items-center justify-between mb-6">
+                <h1 className="text-2xl font-bold">
+                    Edit {type === 'income' ? 'Income' : 'Expense'}
+                </h1>
+                <div className="flex gap-2">
                     <button
-                        type="button"
-                        onClick={() => handleFormTypeChange('income')}
-                        className={`px-4 py-2 rounded ${
-                            formType === 'income'
-                                ? 'bg-blue-500 text-white'
-                                : 'bg-gray-200 text-gray-700'
-                        }`}
+                        onClick={() => router.push('/')}
+                        className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
                     >
-                        Income
-                    </button>
-                    <button
-                        type="button"
-                        onClick={() => handleFormTypeChange('expense')}
-                        className={`px-4 py-2 rounded ${
-                            formType === 'expense'
-                                ? 'bg-blue-500 text-white'
-                                : 'bg-gray-200 text-gray-700'
-                        }`}
-                    >
-                        Expense
+                        Back
                     </button>
                 </div>
             </div>
@@ -207,7 +293,7 @@ export default function AddData() {
             {/* Success Message */}
             {success && (
                 <div className="mb-4 p-4 bg-green-100 text-green-700 rounded">
-                    {formType === 'income' ? 'Income' : 'Expense'} record created successfully! Redirecting...
+                    {type === 'income' ? 'Income' : 'Expense'} record updated successfully! Redirecting...
                 </div>
             )}
 
@@ -238,18 +324,18 @@ export default function AddData() {
 
                 {/* Customer (for income) or Vendor (for expense) */}
                 <div>
-                    <label htmlFor={formType === 'income' ? 'customer' : 'vendor'}
+                    <label htmlFor={type === 'income' ? 'customer' : 'vendor'}
                            className="block text-sm font-medium mb-1">
-                        {formType === 'income' ? 'Customer' : 'Vendor'} *
+                        {type === 'income' ? 'Customer' : 'Vendor'} *
                     </label>
                     <input
                         type="text"
-                        id={formType === 'income' ? 'customer' : 'vendor'}
-                        name={formType === 'income' ? 'customer' : 'vendor'}
-                        value={formType === 'income' ? formData.customer || '' : formData.vendor || ''}
+                        id={type === 'income' ? 'customer' : 'vendor'}
+                        name={type === 'income' ? 'customer' : 'vendor'}
+                        value={type === 'income' ? formData.customer || '' : formData.vendor || ''}
                         onChange={handleInputChange}
                         required
-                        placeholder={`Enter ${formType === 'income' ? 'customer' : 'vendor'} name`}
+                        placeholder={`Enter ${type === 'income' ? 'customer' : 'vendor'} name`}
                         className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                 </div>
@@ -305,11 +391,31 @@ export default function AddData() {
                     />
                 </div>
 
-                {/* File Upload */}
+                {/* File Management */}
                 <div>
-                    <label htmlFor="file" className="block text-sm font-medium mb-1">
-                        Attach Document (Optional)
+                    <label className="block text-sm font-medium mb-1">
+                        Attached Document
                     </label>
+
+                    {/* Current file */}
+                    {formData.fileName && !newFile && (
+                        <div className="mb-2 p-2 bg-gray-50 rounded border">
+                            <div className="flex items-center justify-between">
+                                <span className="text-sm text-gray-600">
+                                    Current: {formData.fileName}
+                                </span>
+                                <button
+                                    type="button"
+                                    onClick={removeFile}
+                                    className="text-red-500 hover:text-red-700 text-sm"
+                                >
+                                    Remove
+                                </button>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* New file upload */}
                     <input
                         type="file"
                         id="file"
@@ -317,9 +423,10 @@ export default function AddData() {
                         accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
                         className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
-                    {file && (
+
+                    {newFile && (
                         <p className="text-sm text-gray-600 mt-1">
-                            Selected: {file.name} ({(file.size / 1024 / 1024).toFixed(2)} MB)
+                            New file: {newFile.name} ({(newFile.size / 1024 / 1024).toFixed(2)} MB)
                         </p>
                     )}
                 </div>
@@ -335,28 +442,32 @@ export default function AddData() {
                                 : 'bg-blue-500 hover:bg-blue-600'
                         }`}
                     >
-                        {loading ? 'Creating...' : `Create ${formType === 'income' ? 'Income' : 'Expense'}`}
+                        {loading ? 'Updating...' : `Update ${type === 'income' ? 'Income' : 'Expense'}`}
                     </button>
 
                     <button
                         type="button"
-                        onClick={resetForm}
+                        onClick={handleDelete}
+                        disabled={loading}
+                        className={`px-6 py-2 rounded text-white font-medium ${
+                            loading
+                                ? 'bg-gray-400 cursor-not-allowed'
+                                : 'bg-red-500 hover:bg-red-600'
+                        }`}
+                    >
+                        {loading ? 'Processing...' : 'Delete'}
+                    </button>
+
+                    <button
+                        type="button"
+                        onClick={() => router.push('/')}
                         disabled={loading}
                         className="px-6 py-2 rounded bg-gray-300 text-gray-700 font-medium hover:bg-gray-400 disabled:opacity-50"
-                    >
-                        Reset
-                    </button>
-
-                    <button
-                        type="button"
-                        onClick={() => window.location.href = '/'}
-                        disabled={loading}
-                        className="px-6 py-2 rounded bg-gray-500 text-white font-medium hover:bg-gray-600 disabled:opacity-50"
                     >
                         Cancel
                     </button>
                 </div>
             </form>
         </div>
-    );
+    )
 }

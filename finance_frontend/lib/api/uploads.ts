@@ -14,7 +14,7 @@ export const uploadApi = {
             body: formData, // Browser sets correct Content-Type including boundary for multipart/form-data
         });
     },
-    fetchFileByPath: async (userId: string, fileName: string, authToken: string) => {
+    fetchFileByPath: async (userId: string, fileName: string) => {
         return honoFetch<Response>(`/api/files/${encodeURIComponent(userId)}/${encodeURIComponent(fileName)}`, {
             method: "GET",
         });

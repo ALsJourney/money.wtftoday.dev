@@ -11,7 +11,7 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8558';
 /**
  * A wrapper around fetch specifically for Hono API requests
  */
-export async function honoFetch<T = any>(
+export async function honoFetch<T = unknown>(
     endpoint: string,
     options: FetchOptions = {}
 ): Promise<T> {

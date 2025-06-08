@@ -4,14 +4,15 @@ import {useState} from "react";
 import {useAuth} from "@/contexts/auth-context";
 import {useRouter} from "next/navigation";
 
-export default function SignInPage() {
+export default function SignUpPage() {
+    const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [username, setUsername] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
-    const {login} = useAuth();
+    const {signup} = useAuth();
     const router = useRouter();
-
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -19,12 +20,12 @@ export default function SignInPage() {
         setLoading(true);
 
         try {
-            const result = await login(email, password);
+            const result = await signup(email, password, name);
 
             if (result.success) {
                 router.push('/');
             } else {
-                setError(result.error || 'Login failed.');
+                setError(result.error || 'Sign up failed.');
             }
         } catch (error: unknown) {
             if (error instanceof Error) {
@@ -41,7 +42,7 @@ export default function SignInPage() {
             <div className="card w-full max-w-md bg-base-100 shadow-xl">
                 <div className="card-body">
                     <h2 className="card-title justify-center text-3xl prose prose-lg text-center">
-                        Sign in to your account
+                        Create your account
                     </h2>
                     {error && (
                         <div className="alert alert-error mt-4">
@@ -54,6 +55,38 @@ export default function SignInPage() {
                         </div>
                     )}
                     <form onSubmit={handleSubmit} className="space-y-4 mt-6">
+                        <div className="form-control">
+                            <label className="floating-label" htmlFor="name">
+                                <span className="label-text">Full Name</span>
+                            </label>
+                            <input
+                                id="name"
+                                type="text"
+                                placeholder="Full Name"
+                                className="input input-bordered"
+                                value={name}
+                                onChange={(e) => setName(e.target.value)}
+                                required
+                                autoComplete="name"
+                                disabled={loading}
+                            />
+                        </div>
+                        <div className="form-control">
+                            <label className="floating-label" htmlFor="username">
+                                <span className="label-text">Username</span>
+                            </label>
+                            <input
+                                id="username"
+                                type="text"
+                                placeholder="Username"
+                                className="input input-bordered"
+                                value={username}
+                                onChange={(e) => setUsername(e.target.value)}
+                                required
+                                autoComplete="username"
+                                disabled={loading}
+                            />
+                        </div>
                         <div className="form-control">
                             <label className="floating-label" htmlFor="email">
                                 <span className="label-text">Email</span>
@@ -82,7 +115,7 @@ export default function SignInPage() {
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 required
-                                autoComplete="current-password"
+                                autoComplete="new-password"
                                 disabled={loading}
                             />
                         </div>
@@ -92,17 +125,16 @@ export default function SignInPage() {
                                 className={`btn btn-primary ${loading ? 'loading' : ''}`}
                                 disabled={loading}
                             >
-                                Sign In
+                                Sign Up
                             </button>
                         </div>
                     </form>
-                    <div className="divider">
-                        <div className="text-center">
-                            <span className="text-sm">Don&#39;t have an account? </span>
-                            <a href="/sign-up" className="text-sm link link-primary">
-                                Sign up
-                            </a>
-                        </div>
+                    <div className="divider"></div>
+                    <div className="text-center">
+                        <span className="text-sm">Already have an account? </span>
+                        <a href="/sign-in" className="text-sm link link-primary">
+                            Sign in
+                        </a>
                     </div>
                 </div>
             </div>

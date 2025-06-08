@@ -1,5 +1,4 @@
 import {useLogout} from "@/hooks/useLogout";
-import Link from "next/link";
 
 export default function NavBar() {
 
