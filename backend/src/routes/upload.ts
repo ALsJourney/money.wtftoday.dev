@@ -128,9 +128,14 @@ uploadRouter.post("/", isAuthenticated, async (c) => {
 });
 
 // Serve encrypted files endpoint with decryption
-uploadRouter.get("/:userId/:fileName", async (c) => {
+uploadRouter.get("/:userId/:fileName", isAuthenticated, async (c) => {
     try {
         const {userId, fileName} = c.req.param();
+        const requestUserId = c.get("userId");
+
+        if (userId !== requestUserId) {
+            return c.json({error: "Unauthorized"}, 403);
+        }
 
         // Handle both encrypted and legacy unencrypted files
         let filePath = join(UPLOAD_DIR, userId, fileName);
