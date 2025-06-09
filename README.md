@@ -1,7 +1,7 @@
 # Simple Finance - Self-Hosted Finance Dashboard
 
 A comprehensive finance dashboard for small business owners to track income and expenses. This application helps you
-manage your financial records, upload invoices, and generate the mighty report for the "Gewinn-Ausgaben Rechnung".
+manage your financial records, upload invoices, and generate the mighty report for the "Einnahmen-Ausgaben Rechnung".
 
 ## Features
 
