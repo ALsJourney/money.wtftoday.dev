@@ -67,6 +67,10 @@ docker compose up -d
 # Navigate to the backend directory
 cd backend
 
+# create the uploads folder for the files
+
+mkdir uploads
+
 # Install dependencies
 bun install
 
@@ -75,6 +79,10 @@ cp .env.example .env
 
 # Run the backend
 bun dev
+
+# Run migrations in a new terminal
+
+bun drizzle-kit push
 ```
 
 ### 4. Frontend setup
