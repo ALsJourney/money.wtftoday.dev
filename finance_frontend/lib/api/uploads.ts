@@ -19,4 +19,12 @@ export const uploadApi = {
             method: "GET",
         });
     },
+    downloadFileByPath: async (userId: string, fileName: string) => {
+        return honoFetch<Response>(`/api/files/${encodeURIComponent(userId)}/${encodeURIComponent(fileName)}/download`, {
+            method: "GET",
+            headers: {
+                "Accept": "application/octet-stream",
+            },
+        });
+    }
 };
