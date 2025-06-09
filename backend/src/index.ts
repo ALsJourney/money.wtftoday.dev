@@ -8,6 +8,8 @@ import {expenseRouter} from "./routes/expense";
 import {healthRouter} from "./routes/health";
 import {incomeRouter} from "./routes/income";
 import {uploadRouter} from "./routes/upload";
+import {exportRouter} from "./routes/export";
+
 
 const app = new Hono();
 
@@ -31,6 +33,7 @@ app.route("/api/expense", expenseRouter);
 app.route("/api/dashboard", dashboardRouter);
 app.route("/api/upload", uploadRouter);
 app.route("/api/files", uploadRouter);
+app.route("/api/export", exportRouter);
 
 app.get("/", (c) =>
     c.json({
@@ -44,9 +47,14 @@ app.get("/", (c) =>
                 text: "Dashboard",
                 href: new URL("/api/dashboard/summary/2025", c.req.url).href,
             },
+            {
+                text: "Export",
+                href: new URL("/api/export/tax-report/2025", c.req.url).href,
+            },
         ],
     }),
 );
+
 
 export default {
     port: process.env.PORT ?? process.env.APP_PORT ?? 8558,
