@@ -37,9 +37,9 @@ export class PDFGenerator {
         doc.setFontSize(14);
         doc.text('Zusammenfassung:', 20, 35);
         doc.setFontSize(11);
-        doc.text(`Gesamteinkommen: €${totalIncome.toLocaleString('de-DE', {minimumFractionDigits: 2})}`, 20, 45);
-        doc.text(`Gesamtausgaben: €${totalExpenses.toLocaleString('de-DE', {minimumFractionDigits: 2})}`, 20, 52);
-        doc.text(`Nettoeinkommen: €${netIncome.toLocaleString('de-DE', {minimumFractionDigits: 2})}`, 20, 59);
+        doc.text(`Gesamteinkommen: ${totalIncome.toLocaleString('de-DE', {minimumFractionDigits: 2})} €`, 20, 45);
+        doc.text(`Gesamtausgaben: ${totalExpenses.toLocaleString('de-DE', {minimumFractionDigits: 2})} €`, 20, 52);
+        doc.text(`Nettoeinkommen: ${netIncome.toLocaleString('de-DE', {minimumFractionDigits: 2})} €`, 20, 59);
 
         // Income table
         if (income.length > 0) {
